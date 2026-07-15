@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Profil{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Votre profil</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        <h4 class="mt-2">{{ user.username }}</h4>
+                    </div>
+                    <div class="col-md-8">
+                        <h5>Statistiques</h5>
+                        <p><strong>Nombre de films notés :</strong> {{ rated_movies|length }}</p>
+                    </div>
+                </div>
+
+                <h5>Vos notes :</h5>
+                {% if rated_movies %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Film</th>
+                                <th>Année</th>
+                                <th>Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movie, rating in rated_movies %}
+                            <tr>
+                                <td>{{ movie.title }}</td>
+                                <td>{{ movie.year if movie.year else 'Inconnu' }}</td>
+                                <td>
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= rating %}
+                                            <span class="text-warning">★</span>
+                                        {% else %}
+                                            <span class="text-muted">★</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-sm btn-info">Détails</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    Vous n'avez pas encore noté de films. <a href="{{ url_for('search') }}">Recherchez un film</a> pour commencer !
+                </div>
+                {% endif %}
+
+                <div class="mt-4">
+                    <a href="{{ url_for('rate') }}" class="btn btn-primary me-2">Noter un film</a>
+                    <a href="{{ url_for('recommend') }}" class="btn btn-outline-secondary">Voir les recommandations</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

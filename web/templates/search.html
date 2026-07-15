@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Rechercher des films{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Rechercher des films</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('search') }}" class="mb-4">
+                    {{ form.hidden_tag() }}
+                    <div class="input-group">
+                        {{ form.query(class="form-control", placeholder="Titre du film") }}
+                        <button class="btn btn-primary" type="submit">Rechercher</button>
+                    </div>
+                </form>
+
+                {% if movies %}
+                <h4>Résultats :</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Année</th>
+                                <th>Genres</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movie in movies %}
+                            <tr>
+                                <td>{{ movie.title }}</td>
+                                <td>{{ movie.year if movie.year else 'Inconnu' }}</td>
+                                <td>{{ ', '.join(movie.genres) if movie.genres else 'Inconnu' }}</td>
+                                <td>
+                                    <a href="{{ url_for('movie_detail', movie_id=movie.id) }}" class="btn btn-sm btn-info">Détails</a>
+                                    <a href="{{ url_for('rate') }}?movie_title={{ movie.title|urlencode }}" class="btn btn-sm btn-success">Noter</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% elif form.is_submitted() %}
+                <div class="alert alert-info">Aucun film trouvé.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

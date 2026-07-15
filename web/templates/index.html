@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded-lg m-3">
+    <h1 class="display-4">Bienvenue sur Movie Recommender !</h1>
+    <p class="lead">Découvrez des films adaptés à vos goûts grâce à notre système de recommandation intelligent.</p>
+    <hr class="my-4">
+    {% if current_user.is_authenticated %}
+        <p>Connecté en tant que <strong>{{ current_user.username }}</strong>.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('recommend') }}" role="button">Voir mes recommandations</a>
+        <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('search') }}" role="button">Rechercher un film</a>
+    {% else %}
+        <p>Inscrivez-vous ou connectez-vous pour commencer à recevoir des recommandations personnalisées.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Se connecter</a>
+        <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('signup') }}" role="button">S'inscrire</a>
+    {% endif %}
+</div>
+
+{% if current_user.is_authenticated and recommendations %}
+<div class="mt-5">
+    <h2 class="mb-4">🌟 Recommandations pour vous</h2>
+    <div class="row">
+        {% for rec in recommendations %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ rec.movie.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ rec.movie.year if rec.movie.year else 'Inconnu' }}</h6>
+                    <p class="card-text">
+                        <strong>Genres :</strong> {{ ', '.join(rec.movie.genres) if rec.movie.genres else 'Inconnu' }}<br>
+                        <strong>Score :</strong> {{ "%.2f"|format(rec.score * 5) }}/5
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">{{ rec.reason }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

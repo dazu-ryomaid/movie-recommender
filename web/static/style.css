@@ -1,0 +1,53 @@
+/* Custom CSS for Movie Recommender */
+
+body {
+    padding-top: 20px;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.jumbotron {
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.footer {
+    margin-top: 40px;
+}
+
+/* Star rating styling */
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.9em;
+}
+
+/* Table styling */
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+/* Alert styling */
+.alert {
+    border-radius: 8px;
+}

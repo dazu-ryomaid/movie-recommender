@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Noter un film{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Noter un film</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('rate') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.movie_title.label(class="form-label") }}
+                        {{ form.movie_title(class="form-control", placeholder="Titre du film") }}
+                        {% if form.movie_title.errors %}
+                            <div class="text-danger">
+                                {% for error in form.movie_title.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.rating.label(class="form-label") }}
+                        {{ form.rating(class="form-control", placeholder="Note (1-5)") }}
+                        <small class="form-text text-muted">Notez le film de 1 à 5 étoiles.</small>
+                        {% if form.rating.errors %}
+                            <div class="text-danger">
+                                {% for error in form.rating.errors %}
+                                    <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+                <hr>
+                <p class="text-center"><a href="{{ url_for('search') }}">Rechercher un film</a> avant de le noter.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

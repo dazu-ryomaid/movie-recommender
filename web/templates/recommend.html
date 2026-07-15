@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Recommandations{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Vos recommandations</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <form method="GET" action="{{ url_for('recommend') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <select name="method" class="form-select">
+                                <option value="hybrid" {% if method == 'hybrid' %}selected{% endif %}>Hybride (recommandé)</option>
+                                <option value="content" {% if method == 'content' %}selected{% endif %}>Basé sur le contenu</option>
+                                <option value="collaborative" {% if method == 'collaborative' %}selected{% endif %}>Collaboratif</option>
+                                <option value="popular" {% if method == 'popular' %}selected{% endif %}>Populaire</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="limit" class="form-select">
+                                <option value="5" {% if limit == 5 %}selected{% endif %}>5 recommandations</option>
+                                <option value="10" {% if limit == 10 %}selected{% endif %}>10 recommandations</option>
+                                <option value="20" {% if limit == 20 %}selected{% endif %}>20 recommandations</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary">Actualiser</button>
+                        </div>
+                    </form>
+                </div>
+
+                {% if recommendations %}
+                <div class="row">
+                    {% for rec in recommendations %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ rec.movie.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ rec.movie.year if rec.movie.year else 'Inconnu' }}</h6>
+                                <p class="card-text">
+                                    <strong>Genres :</strong> {{ ', '.join(rec.movie.genres) if rec.movie.genres else 'Inconnu' }}<br>
+                                    <strong>Score :</strong> {{ "%.2f"|format(rec.score * 5) }}/5
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('movie_detail', movie_id=rec.movie.id) }}" class="btn btn-sm btn-outline-primary">Détails</a>
+                                    <a href="{{ url_for('rate') }}?movie_title={{ rec.movie.title|urlencode }}" class="btn btn-sm btn-outline-success">Noter</a>
+                                </div>
+                                <small class="text-muted mt-2 d-block">{{ rec.reason }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    Aucune recommandation trouvée. Essayez de noter quelques films d'abord !
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -20,3 +20,7 @@ venv/
 
 # Base de données SQLite (à garder, mais à ignorer pour les commits fréquents)
 *.db
+
+# Fichiers de session
+.session
+*.session

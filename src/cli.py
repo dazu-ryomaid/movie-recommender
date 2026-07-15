@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 """
 Interface en ligne de commande (CLI) pour le système de recommandation.
+Gère les sessions utilisateurs via un fichier temporaire.
 """
 
 import argparse
-import sys
+import os
+import json
+from pathlib import Path
 from src.database import Database
 from src.auth import AuthSystem
 from src.recommender import RecommenderSystem
 from src.models import Movie, Recommendation
+
+# Chemin du fichier de session
+SESSION_FILE = os.path.join("data", ".session")
 
 
 class MovieRecommenderCLI:
@@ -18,13 +24,40 @@ class MovieRecommenderCLI:
         self.db = Database()
         self.auth = AuthSystem(self.db)
         self.recommender = RecommenderSystem(self.db)
-        self.current_user = None
+        self.current_user = self._load_session()
+    
+    def _load_session(self):
+        """Charge la session utilisateur depuis le fichier de session."""
+        if not os.path.exists(SESSION_FILE):
+            return None
+        try:
+            with open(SESSION_FILE, "r") as f:
+                session = json.load(f)
+                user = self.db.get_user_by_id(session["user_id"])
+                if user:
+                    print(f"🔄 Session chargée : connecté en tant que {user.username}")
+                    return user
+        except (json.JSONDecodeError, KeyError):
+            pass
+        return None
+    
+    def _save_session(self, user):
+        """Sauvegarde la session utilisateur dans un fichier."""
+        Path("data").mkdir(parents=True, exist_ok=True)
+        with open(SESSION_FILE, "w") as f:
+            json.dump({"user_id": user.id}, f)
+    
+    def _clear_session(self):
+        """Efface la session utilisateur."""
+        if os.path.exists(SESSION_FILE):
+            os.remove(SESSION_FILE)
     
     def signup(self, username: str, password: str):
         """Inscrire un nouvel utilisateur."""
         user = self.auth.signup(username, password)
         if user:
             self.current_user = user
+            self._save_session(user)
             print(f"✅ Inscription réussie ! ID utilisateur : {user.id}")
     
     def login(self, username: str, password: str):
@@ -32,11 +65,21 @@ class MovieRecommenderCLI:
         user = self.auth.login(username, password)
         if user:
             self.current_user = user
+            self._save_session(user)
+    
+    def logout(self):
+        """Déconnecter l'utilisateur actuel."""
+        if self.current_user:
+            print(f"👋 Déconnexion de {self.current_user.username}")
+            self._clear_session()
+            self.current_user = None
+        else:
+            print("❌ Aucun utilisateur connecté.")
     
     def rate_movie(self, movie_title: str, rating: int):
         """Noter un film."""
         if not self.current_user:
-            print("❌ Vous devez être connecté pour noter un film.")
+            print("❌ Vous devez être connecté pour noter un film. Utilisez 'login' ou 'signup'.")
             return
         
         movie = self.db.search_movies(movie_title, limit=1)
@@ -62,7 +105,7 @@ class MovieRecommenderCLI:
             print(f"❌ Aucun film trouvé pour '{query}'.")
             return
         
-        print(f"🔍 Résultats pour '{query}' :")
+        print(f"\n🔍 Résultats pour '{query}' :")
         for i, movie in enumerate(movies, 1):
             genres = ", ".join(movie.genres) if movie.genres else "Inconnu"
             print(f"{i}. {movie.title} ({movie.year}) - Genres : {genres}")
@@ -73,7 +116,7 @@ class MovieRecommenderCLI:
             print("❌ Vous devez être connecté pour obtenir des recommandations.")
             return
         
-        print(f"🎯 Génération de recommandations (méthode : {method})...")
+        print(f"\n🎯 Génération de recommandations (méthode : {method})...")
         recommendations = self.recommender.get_recommendations(
             self.current_user.id, method=method, limit=limit
         )
@@ -93,7 +136,7 @@ class MovieRecommenderCLI:
     def list_genres(self):
         """Lister tous les genres disponibles."""
         genres = self.db.get_all_genres()
-        print("🎭 Genres disponibles :")
+        print("\n🎭 Genres disponibles :")
         for i, genre in enumerate(genres, 1):
             print(f"{i}. {genre}")
     
@@ -114,6 +157,13 @@ class MovieRecommenderCLI:
             if movie:
                 print(f"{i}. {movie.title} : {rating.rating}/5")
     
+    def whoami(self):
+        """Affiche l'utilisateur actuellement connecté."""
+        if self.current_user:
+            print(f"👤 Connecté en tant que : {self.current_user.username} (ID: {self.current_user.id})")
+        else:
+            print("❌ Aucun utilisateur connecté.")
+    
     def run(self):
         """Lance l'interface CLI."""
         parser = argparse.ArgumentParser(
@@ -131,6 +181,9 @@ class MovieRecommenderCLI:
         login_parser.add_argument("--username", required=True, help="Nom d'utilisateur")
         login_parser.add_argument("--password", required=True, help="Mot de passe")
         
+        # Commande logout
+        subparsers.add_parser("logout", help="Se déconnecter")
+        
         # Commande rate
         rate_parser = subparsers.add_parser("rate", help="Noter un film")
         rate_parser.add_argument("--movie", required=True, help="Titre du film")
@@ -147,7 +200,7 @@ class MovieRecommenderCLI:
             "--method", 
             choices=["content", "collaborative", "hybrid", "popular"],
             default="hybrid",
-            help="Méthode de recommandation"
+            help="Méthode de recommandation (défaut: hybrid)"
         )
         recommend_parser.add_argument("--limit", type=int, default=5, help="Nombre de recommandations")
         
@@ -156,6 +209,9 @@ class MovieRecommenderCLI:
         
         # Commande my-ratings
         subparsers.add_parser("my-ratings", help="Voir mes notes")
+        
+        # Commande whoami
+        subparsers.add_parser("whoami", help="Voir l'utilisateur connecté")
         
         args = parser.parse_args()
         
@@ -168,6 +224,8 @@ class MovieRecommenderCLI:
             self.signup(args.username, args.password)
         elif args.command == "login":
             self.login(args.username, args.password)
+        elif args.command == "logout":
+            self.logout()
         elif args.command == "rate":
             self.rate_movie(args.movie, args.rating)
         elif args.command == "search":
@@ -178,6 +236,8 @@ class MovieRecommenderCLI:
             self.list_genres()
         elif args.command == "my-ratings":
             self.my_ratings()
+        elif args.command == "whoami":
+            self.whoami()
         else:
             parser.print_help()
 
