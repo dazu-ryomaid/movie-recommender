@@ -1,0 +1,22 @@
+# Ignorer les fichiers temporaires et les données
+.data/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environnement virtuel
+venv/
+.env/
+
+# Fichiers de configuration locaux
+.env
+*.local
+
+# Dataset brut (peut être volumineux)
+*.zip
+*.raw
+
+# Base de données SQLite (à garder, mais à ignorer pour les commits fréquents)
+*.db
